@@ -7,7 +7,7 @@ This repository contains configuration files for deploying [n8n](https://n8n.io/
 - Ready-to-deploy configuration for Render.io
 - Persistent data storage using Render Disks
 - PostgreSQL database integration
-- Custom domain support (configured for n8nalter.ddns.net)
+- Custom domain support (configured for iknowl-n8n.onrender.com)
 - Automatic SSL/TLS certificate management
 - Environment variable management
 - Local development environment with Docker Compose
@@ -28,7 +28,7 @@ This repository contains configuration files for deploying [n8n](https://n8n.io/
 1. After deployment, go to your service dashboard in Render
 2. Navigate to the "Settings" tab
 3. Scroll down to the "Custom Domains" section
-4. Add your domain (n8nalter.ddns.net)
+4. Add your domain (iknowl-n8n.onrender.com)
 5. Follow Render's instructions to configure DNS settings for your domain
 
 ### Environment Variables
