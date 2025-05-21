@@ -16,9 +16,10 @@ services:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_POSTGRESDB_USER:-n8n_user} -d ${DB_POSTGRESDB_DATABASE:-n8n_db}"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   n8n:
     build:
@@ -29,6 +30,15 @@ services:
       - "${PORT:-5678}:5678"
     env_file:
       - .env
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${DB_POSTGRESDB_DATABASE:-n8n_db}
+      - DB_POSTGRESDB_USER=${DB_POSTGRESDB_USER:-n8n_user}
+      - DB_POSTGRESDB_PASSWORD=${DB_POSTGRESDB_PASSWORD:-StrongPassword123!}
+      - DB_POSTGRESDB_SCHEMA=${DB_POSTGRESDB_SCHEMA:-public}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
     volumes:
       - n8n_data:/home/node/.n8n
     depends_on:

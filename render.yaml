@@ -37,8 +37,13 @@ services:
         value: public
 
       # n8n configuration
+      # CRITICAL: The encryption key must be consistent across deployments
+      # If you're redeploying, use the SAME key as before or credentials will break
       - key: N8N_ENCRYPTION_KEY
         sync: false # This will prompt for the value during deployment
+        # IMPORTANT: When prompted during deployment, enter the SAME key used previously
+        # If this is your first deployment, generate a secure key with: openssl rand -hex 24
+        # and SAVE this key securely for future deployments
       - key: N8N_PROTOCOL
         value: https
       - key: N8N_PORT
