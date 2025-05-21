@@ -1,15 +1,36 @@
 #!/usr/bin/env bash
 
-: ${EXPORT_DIR:="n8n-$(date +%Y%m%d)"}
+# Script to export n8n workflows to a backup directory
+# Usage: ./export_workflows.sh [backup_directory]
 
-: ${DATA_FOLDER:="/home/node/.n8n"}
+# Default export directory name with date
+EXPORT_DIR=${1:-"n8n-backup-$(date +%Y%m%d-%H%M%S)"}
 
-set -euo
+# Default data folder location
+DATA_FOLDER=${DATA_FOLDER:-"/home/node/.n8n"}
 
+# Default backup root directory
+EXPORT_ROOT=${EXPORT_ROOT:-"./backups"}
+
+# Create backup directory if it doesn't exist
+mkdir -p "$EXPORT_ROOT"
+
+set -euo pipefail
+
+echo "Exporting n8n workflows to $EXPORT_ROOT/$EXPORT_DIR"
+
+# Load environment variables from .env file if it exists
+if [ -f .env ]; then
+  echo "Loading environment variables from .env file"
+  export $(grep -v '^#' .env | xargs)
+fi
+
+# Run the export command
 docker run \
-    -p 5678:5678 \
-    -v /.env \
-    -v ${DATA_FOLDER}/n8n:/home/node/.n8n \
+    --rm \
+    -v "$(pwd)/.env:/home/node/.env" \
+    -v "${DATA_FOLDER}:/home/node/.n8n" \
+    -v "$(pwd)/${EXPORT_ROOT}:/backup" \
     -e N8N_ENCRYPTION_KEY \
     -e GENERIC_TIMEZONE \
     -e TZ \
@@ -20,8 +41,8 @@ docker run \
     -e DB_POSTGRESDB_USER \
     -e DB_POSTGRESDB_SCHEMA \
     -e DB_POSTGRESDB_PASSWORD \
-    -v $EXPORT_ROOT:/backup \
     -u node \
-    n8nio/n8n \
-    n8n export:workflow --backup --output=/backup/$EXPORT_DIR/ \
-    --data=/home/node/.n8n
+    n8nio/n8n:latest \
+    n8n export:workflow --backup --output=/backup/$EXPORT_DIR/ --data=/home/node/.n8n
+
+echo "Export completed successfully to $EXPORT_ROOT/$EXPORT_DIR"

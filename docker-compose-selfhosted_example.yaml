@@ -1,0 +1,58 @@
+volumes:
+  n8n_data:
+  postgres_data:
+
+services:
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: n8n_user
+      POSTGRES_PASSWORD: StrongPassword123!
+      POSTGRES_DB: n8n_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n_user -d n8n_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: n8n_db
+      DB_POSTGRESDB_USER: n8n_user
+      DB_POSTGRESDB_PASSWORD: StrongPassword123!
+      N8N_HOST: n8n.fina.ge
+      WEBHOOK_URL: https://n8n.fina.ge
+      GENERIC_TIMEZONE: Asia/Tbilisi
+      N8N_PROTOCOL: https
+      N8N_BASE_URL: / # Changed to avoid path issues
+      # VUE_APP_URL_BASE_API removed unless needed for frontend
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      postgres:
+        condition: service_healthy
+    extra_hosts:
+      - "n8n.fina.ge:10.10.0.252"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=n8n-service"
+
+  watchtower:
+    image: containrrr/watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 3600 --cleanup --scope n8n-service
+    deploy:
+      mode: replicated
+      replicas: 0 # Temporarily disable to test stability

@@ -5,30 +5,70 @@ services:
     region: oregon # optional (defaults to oregon)
     plan: standard # optional (defaults to starter)
     branch: main # optional (defaults to master)
-    # dockerCommand: ./webdis.sh # optional (defaults to Dockerfile command)
     numInstances: 1
     healthCheckPath: /
+    domains:
+      - n8nalter.ddns.net
     envVars:
-      - key: PGHOST
+      # Database configuration from Render managed database
+      - key: DB_TYPE
+        value: postgresdb
+      - key: DB_POSTGRESDB_HOST
         fromDatabase:
           name: n8nDB
           property: host
-      - key: PGDATABASE
+      - key: DB_POSTGRESDB_DATABASE
         fromDatabase:
           name: n8nDB
           property: database
-      - key: PGPORT
+      - key: DB_POSTGRESDB_PORT
         fromDatabase:
           name: n8nDB
           property: port
-      - key: PGUSER
+      - key: DB_POSTGRESDB_USER
         fromDatabase:
           name: n8nDB
           property: user
-      - key: PGPASSWORD
+      - key: DB_POSTGRESDB_PASSWORD
         fromDatabase:
           name: n8nDB
           property: password
+      - key: DB_POSTGRESDB_SCHEMA
+        value: public
+
+      # n8n configuration
+      - key: N8N_ENCRYPTION_KEY
+        sync: false # This will prompt for the value during deployment
+      - key: N8N_PROTOCOL
+        value: https
+      - key: N8N_PORT
+        value: 5678
+      - key: N8N_HOST
+        value: n8nalter.ddns.net # Primary domain
+      - key: WEBHOOK_URL
+        value: https://n8nalter.ddns.net # Primary webhook URL
+      - key: GENERIC_TIMEZONE
+        value: Asia/Tbilisi # Set your preferred timezone
+      - key: TZ
+        value: Asia/Tbilisi # Set your preferred timezone
+
+      # Execution data settings
+      - key: EXECUTIONS_DATA_PRUNE
+        value: "true"
+      - key: EXECUTIONS_DATA_MAX_AGE
+        value: "72"
+      - key: EXECUTIONS_DATA_SAVE_ON_ERROR
+        value: "all"
+      - key: EXECUTIONS_DATA_SAVE_ON_SUCCESS
+        value: "none"
+      - key: EXECUTIONS_DATA_SAVE_ON_PROGRESS
+        value: "false"
+      - key: EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS
+        value: "false"
+
+      # Logging
+      - key: N8N_LOG_LEVEL
+        value: info
     disk:
       name: n8nDisk
       mountPath: /home/node/.n8n
@@ -37,3 +77,4 @@ services:
 databases:
   - name: n8nDB
     plan: starter
+    ipAllowList: [] # Allow all IPs by default

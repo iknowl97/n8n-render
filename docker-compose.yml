@@ -1,0 +1,36 @@
+version: '3.8'
+
+volumes:
+  n8n_data:
+  postgres_data:
+
+services:
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_POSTGRESDB_USER:-n8n_user}
+      POSTGRES_PASSWORD: ${DB_POSTGRESDB_PASSWORD:-StrongPassword123!}
+      POSTGRES_DB: ${DB_POSTGRESDB_DATABASE:-n8n_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_POSTGRESDB_USER:-n8n_user} -d ${DB_POSTGRESDB_DATABASE:-n8n_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  n8n:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${PORT:-5678}:5678"
+    env_file:
+      - .env
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      postgres:
+        condition: service_healthy
